@@ -1,0 +1,38 @@
+name: Swift
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  target_macOS:
+
+    name: Smoke Test (macOS)
+    
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Select Xcode
+      run: sudo xcode-select --switch "$(find /Applications -mindepth 1 -maxdepth 1 ! -type l | grep "Xcode_[\.0-9]*app" | sort -V | tail -1)/Contents/Developer"
+    - name: Build
+      run: swift build -v
+    - name: Run tests
+      run: swift test -v
+
+  target_simulator:
+
+    name: Smoke Test (iOS Simulator)
+    
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Select Xcode
+      run: sudo xcode-select --switch "$(find /Applications -mindepth 1 -maxdepth 1 ! -type l | grep "Xcode_[\.0-9]*app" | sort -V | tail -1)/Contents/Developer"
+    - name: Build
+      run: xcodebuild build -scheme ThinPlateSplineTransform -destination 'platform=iOS Simulator,name=iPhone 11' -workspace .
+    - name: Run tests
+      run: xcodebuild test -scheme ThinPlateSplineTransform -destination 'platform=iOS Simulator,name=iPhone 11' -workspace .
