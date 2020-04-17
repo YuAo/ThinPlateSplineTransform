@@ -77,8 +77,8 @@ static inline simd_float2 tpsTransform(simd_float2 point, simd_float2 *sourcePoi
 
 _Nullable ThinPlateSplineTransformRef ThinPlateSplineTransformCreate(const simd_float2 *sourcePoints, const simd_float2 *targetPoints, size_t count, float regularizationParameter) {
     assert(count > 0);
-    // Using LAPACK here. Matrix is Column-Major.
     
+    // Using LAPACK here. Matrix is Column-Major.
     float * matL = calloc((count + 3) * (count + 3), sizeof(float));
     
     for (size_t i = 0; i < count; i += 1) {
@@ -115,7 +115,7 @@ _Nullable ThinPlateSplineTransformRef ThinPlateSplineTransformCreate(const simd_
     __CLPK_integer getOptimumWorkSize = -1;
     ssysv_("U", &n, &nrhs, matL, &lda, ipiv, matB, &ldb, &optimumWorkSizeFloat, &getOptimumWorkSize, &info);
     if (info != 0) {
-        printf("MTIThinPlateSplineShapeTransform: Could not find optimum workspace size. Status is: %ld", (long)info);
+        printf("ThinPlateSplineShapeTransform: Could not find optimum workspace size. Status is: %ld", (long)info);
         free(ipiv);
         free(matL);
         free(matB);
@@ -126,7 +126,7 @@ _Nullable ThinPlateSplineTransformRef ThinPlateSplineTransformCreate(const simd_
     __CLPK_real *workspace = malloc((unsigned long)optimumWorkSize * sizeof(__CLPK_real));
     ssysv_("U", &n, &nrhs, matL, &lda, ipiv, matB, &ldb, workspace, &optimumWorkSize, &info);
     if (info != 0) {
-        printf("MTIThinPlateSplineShapeTransform: Could not solve for X. Status is: %ld", (long)info);
+        printf("ThinPlateSplineShapeTransform: Could not solve for X. Status is: %ld", (long)info);
         free(workspace);
         free(ipiv);
         free(matL);
@@ -143,7 +143,6 @@ _Nullable ThinPlateSplineTransformRef ThinPlateSplineTransformCreate(const simd_
     transform -> _sourcePoints = malloc(count * sizeof(simd_float2));
     memcpy(transform -> _sourcePoints, sourcePoints, count * sizeof(simd_float2));
     transform -> _tpsParameters = matB;
-    
     transform -> _affineTransform = simd_matrix_from_rows(simd_make_float3(matB[count + 1],
                                                               matB[count + 2],
                                                               matB[count]),
