@@ -10,23 +10,27 @@ import ThinPlateSplineTransformCore
 import simd
 
 public final class TPSTransform {
-    private let t: ThinPlateSplineTransformRef
+    
+    private let transform: ThinPlateSplineTransformRef
+    
+    let regularizationParameter: Float
     
     deinit {
-        ThinPlateSplineTransformRelease(t)
+        ThinPlateSplineTransformRelease(transform)
     }
     
     public init?(sourcePoints: [SIMD2<Float>], targetPoints: [SIMD2<Float>], regularizationParameter: Float = 0) {
         assert(sourcePoints.count == targetPoints.count)
         if let transform = ThinPlateSplineTransformCreate(sourcePoints, targetPoints, sourcePoints.count, regularizationParameter) {
-            t = transform
+            self.regularizationParameter = regularizationParameter
+            self.transform = transform
         } else {
             return nil
         }
     }
     
     public func apply(to point: SIMD2<Float>) -> SIMD2<Float> {
-        return ThinPlateSplineTransformApplyToPoint(t, point)
+        return ThinPlateSplineTransformApplyToPoint(transform, point)
     }
 }
 
@@ -34,7 +38,7 @@ extension TPSTransform {
     public func apply(to points: [SIMD2<Float>]) -> [SIMD2<Float>] {
         var output = points
         for (index, point) in points.enumerated() {
-            output[index] = ThinPlateSplineTransformApplyToPoint(t, point)
+            output[index] = ThinPlateSplineTransformApplyToPoint(transform, point)
         }
         return output
     }
@@ -45,14 +49,14 @@ import CoreGraphics
 
 extension TPSTransform {
     public func apply(to point: CGPoint) -> CGPoint {
-        let r = ThinPlateSplineTransformApplyToPoint(t, SIMD2<Float>(Float(point.x), Float(point.y)))
+        let r = ThinPlateSplineTransformApplyToPoint(transform, SIMD2<Float>(Float(point.x), Float(point.y)))
         return CGPoint(x: CGFloat(r.x), y: CGFloat(r.y))
     }
     
     public func apply(to points: [CGPoint]) -> [CGPoint] {
         var output = points
         for (index, point) in points.enumerated() {
-            let r = ThinPlateSplineTransformApplyToPoint(t, SIMD2<Float>(Float(point.x), Float(point.y)))
+            let r = ThinPlateSplineTransformApplyToPoint(transform, SIMD2<Float>(Float(point.x), Float(point.y)))
             output[index].x = CGFloat(r.x)
             output[index].y = CGFloat(r.y)
         }
